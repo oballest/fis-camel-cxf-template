@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:camel="http://camel.apache.org/schema/spring"
+    xmlns:cxf="http://camel.apache.org/schema/cxf"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+    																			http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd">
+    
+    
+    
+    <cxf:cxfEndpoint address="/temperature" id="TemperatureService"
+        			 serviceClass="com.credibanco.vsafe.services.imp.TemperatureConversionServicePort">
+    </cxf:cxfEndpoint>
+    
+    <cxf:cxfEndpoint address="/orders" id="ordersService"
+        			 serviceClass="camelinaction.order.OrderEndpoint">
+    </cxf:cxfEndpoint>
+    
+    
+    <!-- Define a traditional camel context here -->
+    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+        <route>
+      		<!-- route starts from the cxf webservice -->
+      		<from uri="cxf:bean:TemperatureService" />
+      		<!-- and then create the OK reply for the webservice which is still waiting for a reply -->
+      		<transform>
+        		<constant>0</constant>
+      		</transform>
+    	</route>
+    	
+    	<route>
+      		<!-- route starts from the cxf webservice -->
+      		<from uri="cxf:bean:ordersService" />
+      		<setBody>
+      			<simple>${body[0]}</simple>
+      		</setBody>
+      		<!-- and then create the OK reply for the webservice which is still waiting for a reply -->
+      		<to uri="log:com.credibanco.vsafe?showAll=true"/>
+      		<log message="CXF Body ${body} ${body.partName}"/>      		
+      		<transform>
+        		<constant>OK</constant>
+      		</transform>
+    	</route>
+    </camelContext>
+</beans>
